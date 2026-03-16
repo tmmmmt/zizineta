@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <circle cx="40" cy="40" r="40" fill="#dcedc8"/>
+  <circle cx="40" cy="38" r="22" fill="#fff"/>
+  <circle cx="33" cy="34" r="3" fill="#333"/>
+  <circle cx="47" cy="34" r="3" fill="#333"/>
+  <ellipse cx="40" cy="44" rx="5" ry="3" fill="#aed581"/>
+  <path d="M18 22 Q24 8 34 16" stroke="#8bc34a" stroke-width="3" fill="none"/>
+  <path d="M62 22 Q56 8 46 16" stroke="#8bc34a" stroke-width="3" fill="none"/>
+  <text x="40" y="68" text-anchor="middle" font-size="7" fill="#558b2f" font-weight="bold">東北ずん子</text>
+</svg>
