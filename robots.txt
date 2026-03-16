@@ -5,4 +5,4 @@ Disallow: /scripts/
 Disallow: /sql/
 Disallow: /supabase/
 
-Sitemap: https://example.com/sitemap.xml
+Sitemap: https://tmmmmt.github.io/zizineta/sitemap.xml
