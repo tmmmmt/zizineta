@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - ジジねた</title>
+  <meta name="description" content="ジジねたについて。AIキャラクターによるニュース解説サイトの概要、運営方針、プライバシーポリシーをご覧いただけます。">
+  <link rel="canonical" href="https://example.com/about/">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/logo.png">
+  <!-- OGP -->
+  <meta property="og:site_name" content="ジジねた">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="About - ジジねた">
+  <meta property="og:description" content="ジジねたについて。AIキャラクターによるニュース解説サイトの概要、運営方針、プライバシーポリシーをご覧いただけます。">
+  <meta property="og:url" content="https://example.com/about/">
+  <meta property="og:image" content="https://example.com/assets/top.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About - ジジねた">
+  <meta name="twitter:description" content="ジジねたについて。AIキャラクターによるニュース解説サイトの概要、運営方針、プライバシーポリシーをご覧いただけます。">
+  <meta name="twitter:image" content="https://example.com/assets/top.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "ホーム",
+        "item": "https://example.com/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "About",
+        "item": "https://example.com/about/"
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo"><a href="../index.html"><img src="../assets/logo.png" alt="ジジねた"></a></div>
+    <nav class="header-nav">
+      <a href="../index.html" class="nav-link">ホーム</a>
+      <a href="../news/index.html" class="nav-link">ニュース一覧</a>
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-toggle">カテゴリー <span class="dropdown-arrow">▾</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="../news/index.html?cat=ai">AI</a>
+          <a href="../news/index.html?cat=tech">テクノロジー</a>
+          <a href="../news/index.html?cat=game">ゲーム</a>
+          <a href="../news/index.html?cat=entame">エンタメ</a>
+          <a href="../news/index.html?cat=internet">ネット話題</a>
+          <a href="../news/index.html?cat=society">社会</a>
+        </div>
+      </div>
+      <a href="./" class="nav-link active">About</a>
+    </nav>
+    <button class="header-hamburger" aria-label="メニュー" id="hamburger-btn">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="header-search" aria-label="検索">🔍</button>
+  </header>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-container">
+      <form class="search-form" id="searchForm" action="../news/index.html">
+        <input type="search" class="search-input" name="q" placeholder="キーワードを入力..." aria-label="検索キーワード">
+        <button type="button" class="search-close" id="searchClose" aria-label="閉じる">&times;</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="about-container">
+      <h1>About</h1>
+
+      <section class="about-section">
+        <h2>サイト概要</h2>
+        <p>
+          「ジジねた」は、インターネットで今話題になっているニュースを
+          AIがわかりやすく解説するニュースサイトです。
+        </p>
+        <p>
+          難しいニュースも、キャラクター同士の会話形式でやさしく解説。
+          誰でも気軽にニュースを理解できることを目指しています。
+        </p>
+      </section>
+
+      <section class="about-section">
+        <h2>対象ジャンル</h2>
+        <ul>
+          <li>テクノロジー</li>
+          <li>AI（人工知能）</li>
+          <li>ゲーム</li>
+          <li>エンタメ</li>
+          <li>インターネット話題</li>
+          <li>社会トピック</li>
+        </ul>
+      </section>
+
+      <section class="about-section">
+        <h2>運営方針</h2>
+        <p>
+          当サイトは中立的な立場でニュースを解説することを方針としています。
+          政治・政党・選挙などの強い政治テーマは基本的に扱いません。
+        </p>
+        <p>
+          ユーザーの皆さまが安心して利用できる、
+          シンプルで読みやすいサイトを目指しています。
+        </p>
+      </section>
+
+      <section class="about-section" id="privacy">
+        <h2>プライバシーポリシー</h2>
+        <h3>個人情報の取り扱い</h3>
+        <p>
+          当サイト「ジジねた」（以下「当サイト」）は、ユーザーの個人情報の重要性を認識し、
+          適切に保護することをお約束します。
+        </p>
+
+        <h3>取得する情報</h3>
+        <p>当サイトでは、以下の情報を取得・利用することがあります。</p>
+        <ul>
+          <li><strong>ブラウザ識別子：</strong>コメント投稿や投票機能のために、ブラウザのローカルストレージにランダム生成されたIDを保存します。氏名・メールアドレス等の個人を特定できる情報は取得しません。</li>
+          <li><strong>投稿内容：</strong>ユーザーが入力したコメントの内容および投票情報。</li>
+          <li><strong>アクセス情報：</strong>サーバーログに記録されるIPアドレス、ブラウザの種類、アクセス日時などの情報。サイトの運営・改善の目的でのみ利用します。</li>
+        </ul>
+
+        <h3>情報の利用目的</h3>
+        <ul>
+          <li>コメント・投票機能の提供および不正利用の防止</li>
+          <li>サイトの運営・改善・統計分析</li>
+        </ul>
+
+        <h3>第三者への提供</h3>
+        <p>
+          取得した情報は、法令に基づく場合を除き、第三者に提供することはありません。
+        </p>
+
+        <h3>AI生成コンテンツについて</h3>
+        <p>
+          当サイトの記事解説にはAI（人工知能）を利用しています。
+          AI解説は情報提供を目的としたものであり、内容の正確性を保証するものではありません。
+          音声合成には VOICEVOX を利用しています。
+        </p>
+
+        <h3>Cookieおよびローカルストレージ</h3>
+        <p>
+          当サイトでは、ユーザー識別やポイント管理のためにブラウザのローカルストレージを使用しています。
+          ブラウザの設定からローカルストレージのデータを削除することで、保存された情報をいつでも消去できます。
+        </p>
+
+        <h3>ポリシーの変更</h3>
+        <p>
+          本ポリシーは、必要に応じて予告なく改定することがあります。
+          改定後のポリシーは当ページに掲載した時点で効力を生じます。
+        </p>
+
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">制定日：2026年3月14日</p>
+      </section>
+
+      <section class="about-section">
+        <h2>お問い合わせ</h2>
+        <p>
+          サイトに関するご質問やご意見がございましたら、
+          以下のメールアドレスまでお気軽にご連絡ください。
+        </p>
+        <p style="font-weight: 700; color: #7c5cbf;">sumisuejento180@gmail.com</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-name">ジジねた</div>
+    <nav class="footer-links">
+      <a href="../about/">About</a>
+      <a href="../about/#privacy">Privacy Policy</a>
+      <a href="#">Contact</a>
+    </nav>
+    <p class="footer-copy">&copy; 2026 ジジねた All rights reserved.</p>
+  </footer>
+
+  <script src="../js/nav.js"></script>
+</body>
+
+</html>

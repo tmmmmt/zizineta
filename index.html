@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ジジねた - 話題のニュースをAI解説</title>
+  <meta name="description" content="話題のニュースをAIキャラクターが楽しく解説！AI・テクノロジー・ゲーム・エンタメなど幅広いジャンルの最新ニュースをお届けします。">
+  <link rel="canonical" href="https://example.com/">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/logo.png">
+  <!-- OGP -->
+  <meta property="og:site_name" content="ジジねた">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ジジねた - 話題のニュースをAI解説">
+  <meta property="og:description" content="話題のニュースをAIキャラクターが楽しく解説！AI・テクノロジー・ゲーム・エンタメなど幅広いジャンルの最新ニュースをお届けします。">
+  <meta property="og:url" content="https://example.com/">
+  <meta property="og:image" content="https://example.com/assets/top.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ジジねた - 話題のニュースをAI解説">
+  <meta name="twitter:description" content="話題のニュースをAIキャラクターが楽しく解説！AI・テクノロジー・ゲーム・エンタメなど幅広いジャンルの最新ニュースをお届けします。">
+  <meta name="twitter:image" content="https://example.com/assets/top.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- JSON-LD: WebSite -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "ジジねた",
+    "url": "https://example.com/",
+    "description": "話題のニュースをAIキャラクターが楽しく解説",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://example.com/news/index.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <!-- JSON-LD: BreadcrumbList -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "ホーム",
+        "item": "https://example.com/"
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo"><a href="index.html"><img src="assets/logo.png" alt="ジジねた"></a></div>
+    <nav class="header-nav">
+      <a href="index.html" class="nav-link active">ホーム</a>
+      <a href="news/index.html" class="nav-link">ニュース一覧</a>
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-toggle">カテゴリー <span class="dropdown-arrow">▾</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="news/index.html?cat=ai">AI</a>
+          <a href="news/index.html?cat=tech">テクノロジー</a>
+          <a href="news/index.html?cat=game">ゲーム</a>
+          <a href="news/index.html?cat=entame">エンタメ</a>
+          <a href="news/index.html?cat=internet">ネット話題</a>
+          <a href="news/index.html?cat=society">社会</a>
+        </div>
+      </div>
+      <a href="about/" class="nav-link">About</a>
+    </nav>
+    <button class="header-hamburger" aria-label="メニュー" id="hamburger-btn">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="header-search" aria-label="検索">🔍</button>
+  </header>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-container">
+      <form class="search-form" id="searchForm" action="news/index.html">
+        <input type="search" class="search-input" name="q" placeholder="キーワードを入力..." aria-label="検索キーワード">
+        <button type="button" class="search-close" id="searchClose" aria-label="閉じる">&times;</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+    <!-- Top -->
+    <section class="section-top">
+      <div class="top-img">
+        <img src="assets/top.png" alt="ジジねた">
+        <h1 class="visually-hidden">ジジねた - 話題のニュースをAI解説</h1>
+      </div>
+    </section>
+
+    <!-- 注目ニュース -->
+    <section class="featured" id="featured-section">
+      <p style="text-align:center;padding:24px 0;color:#999;">読み込み中...</p>
+    </section>
+
+    <!-- 話題ニュース -->
+    <h2 class="section-heading">話題ニュース</h2>
+    <section class="topic-grid" id="topic-grid">
+      <p style="text-align:center;padding:24px 0;color:#999;">読み込み中...</p>
+    </section>
+
+    <!-- 最新ニュース一覧 -->
+    <h2 class="section-heading">最新ニュース</h2>
+    <ul class="latest-list" id="latest-list">
+      <li style="padding:16px;color:#999;text-align:center;">読み込み中...</li>
+    </ul>
+
+    <div style="text-align: center;">
+      <a href="news/"
+        style="display: inline-block; font-size: 14px; font-weight: 700; color: #7c5cbf; border: 2px solid #7c5cbf; padding: 10px 32px; border-radius: 24px; transition: all 0.2s;">ニュース一覧を見る
+        →</a>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-name">ジジねた</div>
+    <nav class="footer-links">
+      <a href="about/">About</a>
+      <a href="about/#privacy">Privacy Policy</a>
+      <a href="#">Contact</a>
+    </nav>
+    <p class="footer-copy">&copy; 2026 ジジねた All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script>
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    (async function () {
+      try {
+        var articles = await fetchArticles();
+
+        // --- 注目ニュース（最新1件） ---
+        var featuredEl = document.getElementById('featured-section');
+        if (articles && articles.length > 0) {
+          var feat = articles[0];
+          featuredEl.innerHTML = ''
+            + '<span class="featured-label">🔥 注目ニュース</span>'
+            + '<h2 class="featured-title">' + escapeHtml(feat.title) + '</h2>'
+            + '<p class="featured-summary">' + escapeHtml(feat.summary || '') + '</p>'
+            + '<a href="news/article.html?slug=' + encodeURIComponent(feat.slug) + '" class="featured-link">続きを読む →</a>';
+        }
+
+        // --- 話題ニュース（2番目～7番目の6件） ---
+        var topicEl = document.getElementById('topic-grid');
+        var topicArticles = articles.slice(1, 7);
+        if (topicArticles.length > 0) {
+          topicEl.innerHTML = topicArticles.map(function (a) {
+            var cat = CATEGORY_MAP[a.category];
+            var dateStr = '';
+            try { dateStr = a.published_at ? formatDate(a.published_at) : ''; } catch (e) { dateStr = ''; }
+            return '<a href="news/article.html?slug=' + encodeURIComponent(a.slug) + '" class="topic-card">'
+              + '<div>'
+              + (cat ? '<span class="topic-tag ' + cat.tagClass + '">' + cat.label + '</span>' : '')
+              + '<h3 class="topic-title">' + escapeHtml(a.title) + '</h3>'
+              + '<p class="topic-desc">' + escapeHtml(a.summary || '') + '</p>'
+              + '</div>'
+              + '<time class="topic-date">' + dateStr + '</time>'
+              + '</a>';
+          }).join('');
+        }
+
+        // --- 最新ニュース（全記事から最新10件） ---
+        var latestEl = document.getElementById('latest-list');
+        var latestArticles = articles.slice(0, 10);
+        if (latestArticles.length > 0) {
+          latestEl.innerHTML = latestArticles.map(function (a) {
+            var cat = CATEGORY_MAP[a.category];
+            var shortDate = '';
+            try {
+              var d = new Date(a.published_at);
+              shortDate = String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+            } catch (e) { shortDate = ''; }
+            return '<li class="latest-item">'
+              + '<a href="news/article.html?slug=' + encodeURIComponent(a.slug) + '" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;width:100%;">'
+              + '<span class="latest-date">' + shortDate + '</span>'
+              + (cat ? '<span class="latest-tag ' + cat.tagClass + '">' + cat.label + '</span>' : '')
+              + '<span class="latest-title">' + escapeHtml(a.title) + '</span>'
+              + '</a></li>';
+          }).join('');
+        }
+
+      } catch (err) {
+        console.error('トップページ描画エラー:', err);
+        document.getElementById('featured-section').innerHTML = '<p style="text-align:center;padding:24px 0;color:#c62828;">データの取得に失敗しました。</p>';
+        document.getElementById('topic-grid').innerHTML = '';
+        document.getElementById('latest-list').innerHTML = '';
+      }
+    })();
+  </script>
+  <script src="js/nav.js"></script>
+</body>
+
+</html>

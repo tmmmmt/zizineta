@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>記事 - ジジねた</title>
+  <meta name="description" content="ジジねた - AIキャラクターが話題のニュースをわかりやすく解説">
+  <link rel="canonical" href="https://example.com/news/article.html">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="/assets/logo.png">
+  <!-- OGP -->
+  <meta property="og:site_name" content="ジジねた">
+  <meta property="og:locale" content="ja_JP">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="記事 - ジジねた">
+  <meta property="og:description" content="ジジねた - AIキャラクターが話題のニュースをわかりやすく解説">
+  <meta property="og:url" content="https://example.com/news/article.html">
+  <meta property="og:image" content="https://example.com/assets/top.png">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="記事 - ジジねた">
+  <meta name="twitter:description" content="ジジねた - AIキャラクターが話題のニュースをわかりやすく解説">
+  <meta name="twitter:image" content="https://example.com/assets/top.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../js/voicevox.js"></script>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-logo"><a href="../index.html"><img src="../assets/logo.png" alt="ジジねた"></a></div>
+    <nav class="header-nav">
+      <a href="../index.html" class="nav-link">ホーム</a>
+      <a href="index.html" class="nav-link">ニュース一覧</a>
+      <div class="nav-dropdown">
+        <button class="nav-link nav-dropdown-toggle">カテゴリー <span class="dropdown-arrow">▾</span></button>
+        <div class="nav-dropdown-menu">
+          <a href="index.html?cat=ai">AI</a>
+          <a href="index.html?cat=tech">テクノロジー</a>
+          <a href="index.html?cat=game">ゲーム</a>
+          <a href="index.html?cat=entame">エンタメ</a>
+          <a href="index.html?cat=internet">ネット話題</a>
+          <a href="index.html?cat=society">社会</a>
+        </div>
+      </div>
+      <a href="../about/" class="nav-link">About</a>
+    </nav>
+    <button class="header-hamburger" aria-label="メニュー" id="hamburger-btn">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="header-search" aria-label="検索">🔍</button>
+  </header>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-container">
+      <form class="search-form" id="searchForm" action="index.html">
+        <input type="search" class="search-input" name="q" placeholder="キーワードを入力..." aria-label="検索キーワード">
+        <button type="button" class="search-close" id="searchClose" aria-label="閉じる">&times;</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="article-container" id="article-container">
+      <p style="text-align:center;padding:48px 0;color:#999;">読み込み中...</p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-name">ジジねた</div>
+    <nav class="footer-links">
+      <a href="../about/">About</a>
+      <a href="../about/#privacy">Privacy Policy</a>
+      <a href="#">Contact</a>
+    </nav>
+    <p class="footer-copy">&copy; 2026 ジジねた All rights reserved.</p>
+  </footer>
+
+  <script src="../js/data.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script>
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    var COLOR_UNLOCK_THRESHOLDS = [
+      { total: 30,  color: 'green',  label: '緑',  hex: '#66bb6a', emoji: '🟢', cutIn: '../assets/cut_00.png' },
+      { total: 70,  color: 'purple', label: '紫',  hex: '#ab47bc', emoji: '🟣', cutIn: '../assets/cut_01.png' },
+      { total: 120, color: 'pink',   label: '桃',  hex: '#ec407a', emoji: '🩷', cutIn: '../assets/cut_02.png' }
+    ];
+    var shownCutIns = new Set();
+
+    (async function () {
+      const container = document.getElementById('article-container');
+
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get('slug');
+
+        if (!slug) {
+          container.innerHTML = '<p style="text-align:center;padding:48px 0;color:#999;">記事が指定されていません。</p>';
+          return;
+        }
+
+        // 記事データを取得
+        const article = await fetchArticleBySlug(slug);
+
+        if (!article) {
+          container.innerHTML = '<p style="text-align:center;padding:48px 0;color:#999;">記事が見つかりませんでした。</p>';
+          return;
+        }
+
+        document.title = article.title + ' - ジジねた';
+
+        // === 動的SEO設定 ===
+        var seoDesc = (article.summary || '').substring(0, 160);
+        var seoUrl = 'https://example.com/news/article.html?slug=' + encodeURIComponent(slug);
+
+        // meta description
+        var metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', seoDesc);
+
+        // canonical
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.setAttribute('href', seoUrl);
+
+        // OGP
+        var ogTitle = document.querySelector('meta[property="og:title"]');
+        if (ogTitle) ogTitle.setAttribute('content', article.title + ' - ジジねた');
+        var ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogDesc) ogDesc.setAttribute('content', seoDesc);
+        var ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.setAttribute('content', seoUrl);
+
+        // Twitter Card
+        var twTitle = document.querySelector('meta[name="twitter:title"]');
+        if (twTitle) twTitle.setAttribute('content', article.title + ' - ジジねた');
+        var twDesc = document.querySelector('meta[name="twitter:description"]');
+        if (twDesc) twDesc.setAttribute('content', seoDesc);
+
+        // JSON-LD: NewsArticle
+        var articleJsonLd = document.createElement('script');
+        articleJsonLd.type = 'application/ld+json';
+        articleJsonLd.textContent = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          "headline": article.title,
+          "description": seoDesc,
+          "datePublished": article.published_at || '',
+          "author": {"@type": "Organization", "name": "ジジねた"},
+          "publisher": {
+            "@type": "Organization",
+            "name": "ジジねた",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://example.com/assets/logo.png"
+            }
+          },
+          "mainEntityOfPage": {"@type": "WebPage", "@id": seoUrl}
+        });
+        document.head.appendChild(articleJsonLd);
+
+        // JSON-LD: BreadcrumbList
+        var cat = CATEGORY_MAP[article.category];
+        var breadcrumbItems = [
+          {"@type": "ListItem", "position": 1, "name": "ホーム", "item": "https://example.com/"},
+          {"@type": "ListItem", "position": 2, "name": "ニュース一覧", "item": "https://example.com/news/index.html"}
+        ];
+        if (cat) {
+          breadcrumbItems.push({"@type": "ListItem", "position": 3, "name": cat.label, "item": "https://example.com/news/index.html?cat=" + encodeURIComponent(article.category)});
+          breadcrumbItems.push({"@type": "ListItem", "position": 4, "name": article.title, "item": seoUrl});
+        } else {
+          breadcrumbItems.push({"@type": "ListItem", "position": 3, "name": article.title, "item": seoUrl});
+        }
+        var breadcrumbJsonLd = document.createElement('script');
+        breadcrumbJsonLd.type = 'application/ld+json';
+        breadcrumbJsonLd.textContent = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": breadcrumbItems
+        });
+        document.head.appendChild(breadcrumbJsonLd);
+
+        // cat は上で既に定義済み
+        const articleId = article.id;
+
+        // AI解説（DBから取得）
+        let aiCommentary = [];
+        if (article && article.id) {
+          try {
+            aiCommentary = await fetchAiCommentary(article.id);
+          } catch (e) {
+            console.warn('AI解説取得エラー:', e);
+          }
+        }
+
+        // AI解説HTML
+        let commentaryHTML = '';
+        if (aiCommentary && aiCommentary.length) {
+          commentaryHTML = '<section class="ai-commentary">'
+            + '<h2 class="section-heading">AI解説</h2>'
+            + '<div class="ai-commentary-header">'
+            + '<span class="ai-commentary-label">🤖 AIがわかりやすく解説</span>'
+            + '<button class="play-btn" id="playCommentaryBtn" title="AI解説を読み上げ">&#9654;</button>'
+            + '</div>';
+          aiCommentary.forEach(function (msg) {
+            const isRight = msg.char === 'B';
+            const avatarSrc = isRight ? '../assets/avatar-kiritan.png' : '../assets/avatar-zundamon.png';
+            const charName = msg.char === 'A' ? 'ずんだもん' : '東北きりたん';
+            commentaryHTML += '<div class="chat-bubble ' + (isRight ? 'right' : '') + '">'
+              + '<div class="chat-avatar ' + (isRight ? 'char-b' : 'char-a') + '">'
+              + '<img class="chat-avatar-img" src="' + avatarSrc + '" alt="' + charName + '">'
+              + '</div>'
+              + '<div class="chat-content">'
+              + '<div class="chat-name">' + charName + '</div>'
+              + escapeHtml(msg.text)
+              + '</div></div>';
+          });
+          commentaryHTML += '<p class="voicevox-credit">VOICEVOX（ずんだもん、東北きりたん）</p></section>';
+        }
+
+        // 日付
+        let pubDate = '';
+        try {
+          pubDate = article.published_at ? formatDate(article.published_at) : '';
+        } catch (e) {
+          pubDate = String(article.published_at || '');
+        }
+
+        // ページ描画
+        container.innerHTML = ''
+          + '<div class="article-meta">'
+          + '  <span>' + pubDate + '</span>'
+          + (cat ? '  <span class="article-category ' + cat.tagClass + '">' + cat.label + '</span>' : '')
+          + '</div>'
+          + '<div class="article-title-wrap">'
+          + '<h1 class="article-title">' + escapeHtml(article.title) + '</h1>'
+          + '<img src="../assets/avatar-zunko.png" alt="ずん子" class="title-avatar">'
+          + '<button class="play-btn" id="playArticleBtn" title="記事を読み上げ">&#9654;</button>'
+          + '</div>'
+          + '<div class="article-body">' + (article.content || '<p style="text-align:center;color:#999;padding:24px;">記事本文は準備中です。</p>') + '</div>'
+          + '<p class="voicevox-credit">VOICEVOX（東北ずん子）</p>'
+          + commentaryHTML
+          + '<section class="reactions-section">'
+          + '  <h2 class="section-heading">現在の勢力図</h2>'
+          + '  <div class="chart-wrapper"><canvas id="reactionsChart"></canvas></div>'
+          + '  <div class="reaction-counts" id="reactionCounts"></div>'
+          + '</section>'
+          + '<section class="comment-section">'
+          + '  <h2 class="section-heading">コメント</h2>'
+          + '  <div class="comment-form">'
+          + '    <div class="color-select">'
+          + '      <label>色を選択:</label>'
+          + '      <button class="color-option red selected" data-color="red"></button>'
+          + '      <button class="color-option blue" data-color="blue"></button>'
+          + '      <button class="color-option yellow" data-color="yellow"></button>'
+          + '    </div>'
+          + '    <textarea class="comment-textarea" id="commentText" placeholder="コメントを入力（最大200文字）" maxlength="200"></textarea>'
+          + '    <div class="comment-char-count"><span id="charCount">0</span> / 200</div>'
+          + '    <button class="comment-submit" id="commentSubmit">投稿する</button>'
+          + '  </div>'
+          + '  <ul class="comment-list" id="commentList"></ul>'
+          + '</section>';
+
+        // ===== 音声再生ボタン =====
+        function setupPlayBtn(btn, playFn) {
+          if (!btn) return;
+          btn.addEventListener('click', async function () {
+            if (audioPlayer.isPlaying) {
+              audioPlayer.stop();
+              btn.innerHTML = '&#9654;';
+              btn.classList.remove('playing', 'loading');
+              return;
+            }
+            btn.innerHTML = '&#9632;';
+            btn.classList.add('playing');
+            try {
+              await playFn();
+            } catch (e) {
+              console.error('再生エラー:', e);
+              alert('音声ファイルが見つかりません。generate-audio.jsで生成してください。');
+            } finally {
+              btn.innerHTML = '&#9654;';
+              btn.classList.remove('playing', 'loading');
+            }
+          });
+        }
+
+        // 記事読み上げ（事前生成済み音声）
+        var playArticleBtn = document.getElementById('playArticleBtn');
+        setupPlayBtn(playArticleBtn, function () {
+          return audioPlayer.playFile(getArticleAudioPath(slug));
+        });
+
+        // AI解説読み上げ（事前生成済み音声を順次再生）
+        var playCommentaryBtn = document.getElementById('playCommentaryBtn');
+        if (playCommentaryBtn && aiCommentary && aiCommentary.length) {
+          setupPlayBtn(playCommentaryBtn, function () {
+            var urls = aiCommentary.map(function (_, i) {
+              return getCommentAudioPath(slug, i);
+            });
+            return audioPlayer.playSequence(urls);
+          });
+        }
+
+        // ===== 陣営変更オーブ =====
+        const factionOrbsContainer = document.createElement('div');
+        factionOrbsContainer.className = 'faction-orbs';
+        factionOrbsContainer.innerHTML = `
+          <span class="faction-orb" id="orb1"></span>
+          <span class="faction-orb" id="orb2"></span>
+        `;
+        document.body.appendChild(factionOrbsContainer);
+
+        // 陣営変更の状態管理
+        var factionStorageKey = 'factionLastColor_' + articleId;
+        var factionChangesKey = 'factionChangesUsed_' + articleId;
+        var lastPostedColor = localStorage.getItem(factionStorageKey) || null;
+        var factionChangesUsed = parseInt(localStorage.getItem(factionChangesKey) || '0', 10);
+
+        function updateFactionOrbs() {
+          var orb1 = document.getElementById('orb1');
+          var orb2 = document.getElementById('orb2');
+          if (factionChangesUsed >= 1) orb1.classList.add('used');
+          else orb1.classList.remove('used');
+          if (factionChangesUsed >= 2) orb2.classList.add('used');
+          else orb2.classList.remove('used');
+        }
+        updateFactionOrbs();
+
+        // 陣営変更ポップアップ
+        function showFactionPopup(title, message, remaining, alertOnly) {
+          return new Promise(function (resolve) {
+            var overlay = document.createElement('div');
+            overlay.className = 'faction-popup-overlay';
+            overlay.innerHTML =
+              '<div class="faction-popup">'
+              + '  <div class="faction-popup-icon">' + (alertOnly ? '🚫' : '⚠️') + '</div>'
+              + '  <div class="faction-popup-title">' + title + '</div>'
+              + '  <div class="faction-popup-msg">' + message.replace(/\n/g, '<br>') + '</div>'
+              + (remaining > 0 ? '  <div class="faction-popup-remaining">陣営変更の残り回数: ' + remaining + ' 回</div>' : '')
+              + '  <div class="faction-popup-btns">'
+              + (alertOnly
+                  ? '<button class="faction-popup-btn cancel">閉じる</button>'
+                  : '<button class="faction-popup-btn confirm">変更する</button><button class="faction-popup-btn cancel">やめる</button>')
+              + '  </div>'
+              + '</div>';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function () { overlay.classList.add('active'); });
+
+            function close(result) {
+              overlay.classList.remove('active');
+              setTimeout(function () { overlay.remove(); }, 300);
+              resolve(result);
+            }
+
+            overlay.querySelector('.faction-popup-btn.cancel').addEventListener('click', function () { close(false); });
+            var confirmBtn = overlay.querySelector('.faction-popup-btn.confirm');
+            if (confirmBtn) confirmBtn.addEventListener('click', function () { close(true); });
+            overlay.addEventListener('click', function (e) { if (e.target === overlay) close(false); });
+          });
+        }
+
+        // 検閲ブロックポップアップ
+        function showModerationPopup(reason) {
+          var overlay = document.createElement('div');
+          overlay.className = 'faction-popup-overlay';
+          overlay.innerHTML =
+            '<div class="faction-popup">'
+            + '  <div class="faction-popup-icon">\u{1F6AB}</div>'
+            + '  <div class="faction-popup-title">\u6295\u7A3F\u3067\u304D\u307E\u305B\u3093</div>'
+            + '  <div class="faction-popup-msg">' + reason + '</div>'
+            + '  <div class="faction-popup-btns">'
+            + '    <button class="faction-popup-btn cancel">\u9589\u3058\u308B</button>'
+            + '  </div>'
+            + '</div>';
+          document.body.appendChild(overlay);
+          requestAnimationFrame(function () { overlay.classList.add('active'); });
+
+          function close() {
+            overlay.classList.remove('active');
+            setTimeout(function () { overlay.remove(); }, 300);
+          }
+          overlay.querySelector('.faction-popup-btn.cancel').addEventListener('click', close);
+          overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+        }
+
+        // ===== ユーザーポイント表示 =====
+        const pointsContainer = document.createElement('div');
+        pointsContainer.className = 'points-float';
+        pointsContainer.innerHTML = `
+          <div class="faction-badge" id="factionBadge" style="display:none;">
+            <span class="faction-badge-dot" id="factionBadgeDot"></span>
+            <span class="faction-badge-label" id="factionBadgeLabel"></span>
+          </div>
+          <div class="points-icon">P</div>
+          <div>
+            <div class="points-label">保有ポイント</div>
+            <div class="points-value" id="userPoints">...</div>
+          </div>
+          <div class="stay-reward-container">
+            <button class="stay-reward-btn" id="stayRewardBtn">＋1点ゲット！</button>
+          </div>
+        `;
+        document.body.appendChild(pointsContainer);
+
+        // 陣営バッジ更新
+        var FACTION_COLOR_MAP = {
+          red: { label: '赤陣営', hex: '#ef5350' },
+          blue: { label: '青陣営', hex: '#42a5f5' },
+          yellow: { label: '黄陣営', hex: '#ffca28' },
+          green: { label: '緑陣営', hex: '#66bb6a' },
+          purple: { label: '紫陣営', hex: '#ab47bc' },
+          pink: { label: '桃陣営', hex: '#ec407a' }
+        };
+        function updateFactionBadge() {
+          var badge = document.getElementById('factionBadge');
+          var dot = document.getElementById('factionBadgeDot');
+          var label = document.getElementById('factionBadgeLabel');
+          if (lastPostedColor && FACTION_COLOR_MAP[lastPostedColor]) {
+            var info = FACTION_COLOR_MAP[lastPostedColor];
+            dot.style.background = info.hex;
+            label.textContent = info.label;
+            badge.style.display = 'flex';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+        updateFactionBadge();
+
+        async function updatePointsDisplay() {
+          const pts = await fetchUserPoints();
+          document.getElementById('userPoints').textContent = pts + ' pt';
+          // ポイントが変わったら全コメントの投票ボタン状態を更新
+          renderComments(comments);
+        }
+        
+        // ページ読み込み時にポイントをリセット
+        (async function() {
+          await resetPoints();
+          updatePointsDisplay();
+        })();
+
+        // ページ離脱時の警告
+        window.addEventListener('beforeunload', function (e) {
+          const ptsText = document.getElementById('userPoints') ? document.getElementById('userPoints').textContent : '0 pt';
+          const pts = parseInt(ptsText) || 0;
+          if (pts > 0) {
+            e.preventDefault();
+            e.returnValue = ''; // ブラウザ標準の警告を表示
+          }
+        });
+
+        // ===== 10分滞在タイマー =====
+        let stayCount = 0;
+        const stayRewardBtn = document.getElementById('stayRewardBtn');
+        
+        stayRewardBtn.addEventListener('click', async function() {
+          stayRewardBtn.disabled = true;
+          stayRewardBtn.style.display = 'none';
+          stayCount = 0; // リセットして再カウント
+          await addPoints(1);
+          await updatePointsDisplay();
+          stayRewardBtn.disabled = false;
+        });
+
+        // 30秒自動更新に相乗り
+        async function refreshData() {
+          try {
+            comments = await fetchComments(articleId);
+            renderComments(comments);
+            updateChart(comments);
+            
+            // 滞在ポイントカウント
+            stayCount++;
+            if (stayCount >= 20) {
+              stayRewardBtn.style.display = 'block';
+            }
+          } catch (e) { /* 無視 */ }
+        }
+
+        // ===== 勢力図 Chart.js =====
+        // コメントの色ごとの good 合計から集計する
+        function calcReactionsFromComments(list) {
+          var r = { red: 0, blue: 0, yellow: 0, green: 0, purple: 0, pink: 0 };
+          (list || []).forEach(function (c) {
+            if (r[c.color] !== undefined) r[c.color] += (c.good || 0);
+          });
+          return r;
+        }
+
+        // アンロック判定
+        function getUnlockedColors(list) {
+          var r = calcReactionsFromComments(list);
+          var total = r.red + r.blue + r.yellow + r.green + r.purple + r.pink;
+          return COLOR_UNLOCK_THRESHOLDS.filter(function (t) { return total >= t.total; });
+        }
+
+        // ほら貝効果音再生
+        function playConchSound() {
+          try {
+            var audio = new Audio('../assets/hora_00.mp3');
+            audio.play();
+          } catch (e) {
+            console.warn('Audio error:', e);
+          }
+        }
+
+        // カットイン演出
+        function showCutIn(threshold) {
+          if (shownCutIns.has(threshold.color)) return;
+          shownCutIns.add(threshold.color);
+
+          var overlay = document.createElement('div');
+          overlay.className = 'cutin-overlay';
+          overlay.innerHTML = '<div class="cutin-content">'
+            + '<img class="cutin-image" src="' + threshold.cutIn + '" alt="' + threshold.label + ' 解放">'
+            + '</div>';
+          document.body.appendChild(overlay);
+
+          requestAnimationFrame(function () {
+            overlay.classList.add('active');
+          });
+
+          playConchSound();
+
+          function dismiss() {
+            overlay.classList.remove('active');
+            setTimeout(function () { overlay.remove(); }, 500);
+          }
+
+          overlay.addEventListener('click', dismiss);
+        }
+
+        // カラーセレクタ動的更新
+        function updateColorSelector(list) {
+          var selector = document.querySelector('.color-select');
+          if (!selector) return;
+          var unlocked = getUnlockedColors(list);
+          unlocked.forEach(function (t) {
+            if (selector.querySelector('.color-option.' + t.color)) return;
+            var btn = document.createElement('button');
+            btn.className = 'color-option ' + t.color + ' newly-unlocked';
+            btn.dataset.color = t.color;
+            btn.addEventListener('click', function () {
+              document.querySelectorAll('.color-option').forEach(function (b) { b.classList.remove('selected'); });
+              btn.classList.add('selected');
+              selectedColor = t.color;
+            });
+            selector.appendChild(btn);
+          });
+        }
+
+        // 中央テキスト描画プラグイン
+        const centerTextPlugin = {
+          id: 'centerText',
+          afterDraw: function (chart) {
+            var ds = chart.data.datasets[0];
+            if (ds.backgroundColor[0] === '#e0e0e0') return;
+            var total = ds.data.reduce(function (a, b) { return a + b; }, 0);
+            var ctx2 = chart.ctx;
+            var cx = chart.chartArea ? (chart.chartArea.left + chart.chartArea.right) / 2 : chart.width / 2;
+            var cy = chart.chartArea ? (chart.chartArea.top + chart.chartArea.bottom) / 2 : chart.height / 2;
+            ctx2.save();
+            ctx2.textAlign = 'center';
+            ctx2.textBaseline = 'middle';
+            ctx2.fillStyle = '#333';
+            ctx2.font = 'bold 22px sans-serif';
+            ctx2.fillText(total, cx, cy - 8);
+            ctx2.font = '11px sans-serif';
+            ctx2.fillStyle = '#999';
+            ctx2.fillText('total', cx, cy + 12);
+            ctx2.restore();
+          }
+        };
+
+        const ctx = document.getElementById('reactionsChart').getContext('2d');
+        const chart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['赤', '青', '黄'],
+            datasets: [{
+              data: [1, 1, 1],
+              backgroundColor: ['#e0e0e0', '#e0e0e0', '#e0e0e0'],
+              borderWidth: 2,
+              borderColor: '#fff',
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: function (c) {
+                    var ds = c.dataset;
+                    if (ds.backgroundColor[0] === '#e0e0e0') return c.label + ': まだ投票がありません';
+                    var t = ds.data.reduce(function (a, b) { return a + b; }, 0);
+                    var pct = t > 0 ? Math.round(c.parsed / t * 100) : 0;
+                    return c.label + ': ' + pct + '%（' + c.parsed + ' good）';
+                  }
+                }
+              }
+            }
+          },
+          plugins: [centerTextPlugin]
+        });
+
+        function updateChart(list) {
+          var r = calcReactionsFromComments(list);
+          var ds = chart.data.datasets[0];
+          var t = r.red + r.blue + r.yellow + r.green + r.purple + r.pink;
+
+          // 基本3色
+          var labels = ['赤', '青', '黄'];
+          var data = [r.red, r.blue, r.yellow];
+          var colors = ['#ef5350', '#42a5f5', '#ffca28'];
+
+          // アンロック済み色を追加
+          var unlocked = getUnlockedColors(list);
+          unlocked.forEach(function (u) {
+            labels.push(u.label);
+            data.push(r[u.color]);
+            colors.push(u.hex);
+          });
+
+          if (t > 0) {
+            chart.data.labels = labels;
+            ds.data = data;
+            ds.backgroundColor = colors;
+          } else {
+            chart.data.labels = ['赤', '青', '黄'];
+            ds.data = [1, 1, 1];
+            ds.backgroundColor = ['#e0e0e0', '#e0e0e0', '#e0e0e0'];
+          }
+          chart.update();
+
+          // 陣営別カウント更新
+          var countsEl = document.getElementById('reactionCounts');
+          if (countsEl) {
+            if (t > 0) {
+              var html = '<span class="rc-item rc-red">🔴 赤 <b>' + r.red + '</b></span>'
+                + '<span class="rc-item rc-blue">🔵 青 <b>' + r.blue + '</b></span>'
+                + '<span class="rc-item rc-yellow">🟡 黄 <b>' + r.yellow + '</b></span>';
+              unlocked.forEach(function (u) {
+                html += '<span class="rc-item rc-' + u.color + '">' + u.emoji + ' ' + u.label + ' <b>' + r[u.color] + '</b></span>';
+              });
+              countsEl.innerHTML = html;
+            } else {
+              countsEl.innerHTML = '';
+            }
+          }
+
+          // カットイン判定
+          unlocked.forEach(function (u) {
+            if (!shownCutIns.has(u.color)) {
+              showCutIn(u);
+            }
+          });
+
+          // カラーセレクタ更新
+          updateColorSelector(list);
+        }
+
+        // 30秒自動更新
+        if (supabaseClient) {
+          setInterval(refreshData, 30000);
+
+          // Realtime: コメント追加を即時反映
+          supabaseClient
+            .channel('comments-realtime')
+            .on('postgres_changes', {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'comments',
+              filter: 'article_id=eq.' + articleId
+            }, async function () {
+              comments = await fetchComments(articleId);
+              renderComments(comments);
+              updateChart(comments);
+            })
+            .on('postgres_changes', {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'comments',
+              filter: 'article_id=eq.' + articleId
+            }, async function () {
+              comments = await fetchComments(articleId);
+              renderComments(comments);
+              updateChart(comments);
+            })
+            .subscribe();
+        }
+
+        // ===== コメント =====
+        var selectedColor = 'red';
+        var commentList = document.getElementById('commentList');
+        var commentText = document.getElementById('commentText');
+        var charCount = document.getElementById('charCount');
+        var commentSubmit = document.getElementById('commentSubmit');
+        var votedComments = JSON.parse(localStorage.getItem('voted_comments') || '{}');
+        const myVoterId = getVoterId();
+
+        var comments = [];
+        try {
+          comments = await fetchComments(articleId);
+        } catch (e) {
+          console.warn('コメント取得エラー:', e);
+        }
+        renderComments(comments);
+        // 初回ロード時: 既にアンロック済みの色はカットイン表示済みとして扱う
+        getUnlockedColors(comments).forEach(function (u) { shownCutIns.add(u.color); });
+        updateChart(comments);
+
+        function renderComments(list) {
+          if (!list || !list.length) {
+            commentList.innerHTML = '<li style="padding:16px;color:#999;text-align:center;">まだコメントはありません</li>';
+            return;
+          }
+          
+          const currentPts = parseInt(document.getElementById('userPoints').textContent) || 0;
+
+          commentList.innerHTML = list.map(function (c) {
+            var cid = String(c.id);
+            var isDeleted = (c.bad || 0) >= 10;
+            var voted = votedComments[cid];
+            var isOwn = c.voter_id === myVoterId;
+            
+            var addLocal = voted && !isOwn && supabaseClient;
+            var goodCount = (c.good || 0) + (addLocal && voted === 'good' ? 1 : 0);
+            var badCount = (c.bad || 0) + (addLocal && voted === 'bad' ? 1 : 0);
+
+            var commentBody = isDeleted ? 'このコメントは多数の低評価により削除されました' : escapeHtml(c.comment);
+
+            // 投票が無効な理由を判定
+            const canVote = !voted && !isOwn && currentPts > 0;
+            const weightText = (canVote) ? ` (+${currentPts})` : '';
+
+            return '<li class="comment-item' + (isDeleted ? ' deleted' : '') + '">'
+              + '<div class="comment-header">'
+              + '<span class="comment-color-dot ' + c.color + '"></span>'
+              + '<span class="comment-user">匿名' + (isOwn ? '（自分）' : '') + '</span>'
+              + '<span class="comment-time">' + (c.created_at || '') + '</span>'
+              + '</div>'
+              + '<p class="comment-text">' + commentBody + '</p>'
+              + '<div class="comment-actions">'
+              + '<button class="comment-action-btn vote-btn' + (voted === 'good' ? ' voted' : '') + '" data-id="' + c.id + '" data-type="good"' + (!canVote ? ' disabled' : '') + '>👍 <span>' + goodCount + '</span>' + weightText + '</button>'
+              + '<button class="comment-action-btn vote-btn' + (voted === 'bad' ? ' voted' : '') + '" data-id="' + c.id + '" data-type="bad"' + (!canVote ? ' disabled' : '') + '>👎 <span>' + badCount + '</span>' + weightText + '</button>'
+              + '</div>'
+              + '</li>';
+          }).join('');
+
+          commentList.querySelectorAll('.vote-btn').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+              if (this.disabled) return;
+              var cid = this.dataset.id;
+              var type = this.dataset.type;
+              
+              // 現在の全保有ポイントを重みとして使用
+              const weight = currentPts;
+              
+              // UIフィードバック
+              var span = this.querySelector('span');
+              span.textContent = parseInt(span.textContent) + weight;
+              this.disabled = true;
+              this.classList.add('voted');
+              var sibling = this.parentElement.querySelector('.vote-btn[data-type="' + (type === 'good' ? 'bad' : 'good') + '"]');
+              if (sibling) sibling.disabled = true;
+
+              // ローカル保存
+              votedComments[String(cid)] = type;
+              localStorage.setItem('voted_comments', JSON.stringify(votedComments));
+
+              // good 投票時はグラフをローカルで即時更新
+              if (type === 'good') {
+                var target = comments.find(function (c) { return String(c.id) === cid; });
+                if (target) {
+                  target.good = (target.good || 0) + weight;
+                  updateChart(comments);
+                }
+              }
+              
+              const result = await voteComment(cid, type);
+              if (!result.ok) {
+                alert('投票に失敗しました: ' + (result.error || ''));
+              } else {
+                // ポイント消費を反映（DB側で消費されるが、フロント側でも表示を更新）
+                await updatePointsDisplay();
+              }
+            });
+          });
+        }
+
+        // 色選択
+        document.querySelectorAll('.color-option').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('.color-option').forEach(function (b) { b.classList.remove('selected'); });
+            this.classList.add('selected');
+            selectedColor = this.dataset.color;
+          });
+        });
+
+        // 文字数カウント
+        commentText.addEventListener('input', function () {
+          charCount.textContent = this.value.length;
+        });
+
+        // コメント投稿
+        var lastPostTime = 0;
+        commentSubmit.addEventListener('click', async function () {
+          var text = commentText.value.trim();
+          if (!text) return;
+
+          var now = Date.now();
+          if (now - lastPostTime < 10000) {
+            alert('投稿間隔は10秒以上あけてください。');
+            return;
+          }
+
+          // AI検閲チェック（陣営変更より先に実行）
+          commentSubmit.disabled = true;
+          commentSubmit.textContent = '検閲中...';
+          var modResult = await moderateComment(text);
+          if (!modResult.ok) {
+            showModerationPopup(modResult.reason || '投稿できない内容です');
+            commentSubmit.disabled = false;
+            commentSubmit.textContent = '投稿する';
+            return;
+          }
+
+          // 陣営変更チェック
+          commentSubmit.disabled = false;
+          commentSubmit.textContent = '投稿する';
+          if (lastPostedColor && selectedColor !== lastPostedColor) {
+            if (factionChangesUsed >= 2) {
+              await showFactionPopup('陣営変更不可', '陣営変更の上限（2回）に達しました。\n現在の陣営でのみ投稿できます。', 0, true);
+              return;
+            }
+            var remaining = 2 - factionChangesUsed;
+            var accepted = await showFactionPopup(
+              '陣営を変更しますか？',
+              '陣営を変更すると保有ポイントがリセットされます。',
+              remaining,
+              false
+            );
+            if (!accepted) return;
+            await resetPoints();
+            factionChangesUsed++;
+            localStorage.setItem(factionChangesKey, factionChangesUsed);
+            updateFactionOrbs();
+            await updatePointsDisplay();
+          }
+
+          commentSubmit.disabled = true;
+          commentSubmit.textContent = '投稿中...';
+
+          try {
+            var result = await postComment(articleId, selectedColor, text);
+            if (result.ok) {
+              // DB挿入成功 → 返却データで即座にUI反映
+              comments.unshift(result.data);
+              renderComments(comments);
+              updateChart(comments);
+              commentText.value = '';
+              charCount.textContent = '0';
+              lastPostTime = Date.now();
+              lastPostedColor = selectedColor;
+              localStorage.setItem(factionStorageKey, lastPostedColor);
+              updateFactionBadge();
+              updatePointsDisplay();
+            } else {
+              alert('投稿に失敗しました: ' + (result.error || ''));
+            }
+          } catch (e) {
+            alert('投稿エラー: ' + e.message);
+          }
+
+          commentSubmit.disabled = false;
+          commentSubmit.textContent = '投稿する';
+        });
+
+        // ===== デバッグパネル (後で削除) =====
+        const debugPanel = document.createElement('div');
+        debugPanel.className = 'debug-panel';
+        debugPanel.setAttribute('style', 'max-width: 300px;'); // 少し幅を広げる
+        debugPanel.innerHTML = `
+          <h4>Debug Menu</h4>
+          <div>
+            <button class="debug-btn" id="db-add1">+1 pt</button>
+            <button class="debug-btn" id="db-add10">+10 pt</button>
+            <button class="debug-btn" id="db-reset">Reset Pts</button>
+          </div>
+          <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px;">
+            <span>Add Comment:</span><br>
+            <button class="debug-btn" id="db-msg-red" style="color:#ef5350">Red</button>
+            <button class="debug-btn" id="db-msg-blue" style="color:#42a5f5">Blue</button>
+            <button class="debug-btn" id="db-msg-yellow" style="color:#ffca28">Yellow</button>
+            <button class="debug-btn" id="db-msg-green" style="color:#66bb6a">Green</button>
+            <button class="debug-btn" id="db-msg-purple" style="color:#ab47bc">Purple</button>
+            <button class="debug-btn" id="db-msg-pink" style="color:#ec407a">Pink</button>
+          </div>
+          <div style="margin-top:5px;">
+            <span>Vote Good:</span><br>
+            <button class="debug-btn" id="db-vote-red" style="color:#ef5350">Red</button>
+            <button class="debug-btn" id="db-vote-blue" style="color:#42a5f5">Blue</button>
+            <button class="debug-btn" id="db-vote-yellow" style="color:#ffca28">Yellow</button>
+            <button class="debug-btn" id="db-vote-green" style="color:#66bb6a">Green</button>
+            <button class="debug-btn" id="db-vote-purple" style="color:#ab47bc">Purple</button>
+            <button class="debug-btn" id="db-vote-pink" style="color:#ec407a">Pink</button>
+          </div>
+          <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px;">
+            <span>Force +10 Good:</span><br>
+            <button class="debug-btn" id="db-force-red" style="color:#ef5350">Red</button>
+            <button class="debug-btn" id="db-force-blue" style="color:#42a5f5">Blue</button>
+            <button class="debug-btn" id="db-force-yellow" style="color:#ffca28">Yellow</button>
+            <button class="debug-btn" id="db-force-green" style="color:#66bb6a">Green</button>
+            <button class="debug-btn" id="db-force-purple" style="color:#ab47bc">Purple</button>
+            <button class="debug-btn" id="db-force-pink" style="color:#ec407a">Pink</button>
+          </div>
+          <div style="margin-top:5px;">
+            <button class="debug-btn" id="db-reset-cutin" style="width:100%;">Reset Cut-ins</button>
+          </div>
+          <button class="debug-btn" id="db-clear" style="margin-top:8px; width:100%;">Clear Local & Reload</button>
+          <div class="debug-info">
+            ID: <span id="db-id" style="font-size:9px;"></span>
+          </div>
+        `;
+        debugPanel.style.display = 'none';
+        document.body.appendChild(debugPanel);
+
+        // 基本操作
+        document.getElementById('db-add1').onclick = async () => { await addPoints(1); updatePointsDisplay(); };
+        document.getElementById('db-add10').onclick = async () => { await addPoints(10); updatePointsDisplay(); };
+        document.getElementById('db-reset').onclick = async () => { await resetPoints(); updatePointsDisplay(); };
+        document.getElementById('db-clear').onclick = () => {
+          localStorage.removeItem('voter_id');
+          localStorage.removeItem('voted_comments');
+          location.reload();
+        };
+
+        // 指定色のダミーコメント投稿
+        const addDummyComment = async (color) => {
+          const result = await postComment(articleId, color, "Debug " + color + " comment " + Math.floor(Math.random()*100));
+          if(result.ok) {
+            comments = await fetchComments(articleId);
+            renderComments(comments);
+            updateChart(comments);
+            updatePointsDisplay();
+          }
+        };
+        document.getElementById('db-msg-red').onclick = () => addDummyComment('red');
+        document.getElementById('db-msg-blue').onclick = () => addDummyComment('blue');
+        document.getElementById('db-msg-yellow').onclick = () => addDummyComment('yellow');
+        document.getElementById('db-msg-green').onclick = () => addDummyComment('green');
+        document.getElementById('db-msg-purple').onclick = () => addDummyComment('purple');
+        document.getElementById('db-msg-pink').onclick = () => addDummyComment('pink');
+
+        // 指定色の最新コメントにGood投票（ポイント消費テスト用）
+        const voteLatestByColor = async (color) => {
+          const target = comments.find(c => c.color === color && c.voter_id !== myVoterId);
+          if (!target) {
+            alert(color + " の他人のコメントが見つかりません。");
+            return;
+          }
+          const pts = parseInt(document.getElementById('userPoints').textContent) || 0;
+          if (pts <= 0) {
+            alert("ポイントがありません。");
+            return;
+          }
+          const result = await voteComment(target.id, 'good');
+          if (result.ok) {
+            comments = await fetchComments(articleId);
+            renderComments(comments);
+            updateChart(comments);
+            updatePointsDisplay();
+          } else {
+            alert("投票エラー: " + result.error);
+          }
+        };
+        document.getElementById('db-vote-red').onclick = () => voteLatestByColor('red');
+        document.getElementById('db-vote-blue').onclick = () => voteLatestByColor('blue');
+        document.getElementById('db-vote-yellow').onclick = () => voteLatestByColor('yellow');
+        document.getElementById('db-vote-green').onclick = () => voteLatestByColor('green');
+        document.getElementById('db-vote-purple').onclick = () => voteLatestByColor('purple');
+        document.getElementById('db-vote-pink').onclick = () => voteLatestByColor('pink');
+
+        // 指定色のコメントにローカルで直接 +10 good（DB不要）
+        const forceGoodByColor = (color) => {
+          const target = comments.find(c => c.color === color) || comments.find(c => true);
+          if (!target) {
+            alert(color + " のコメントがありません。先にAdd Commentしてください。");
+            return;
+          }
+          target.good = (target.good || 0) + 10;
+          renderComments(comments);
+          updateChart(comments);
+        };
+        document.getElementById('db-force-red').onclick = () => forceGoodByColor('red');
+        document.getElementById('db-force-blue').onclick = () => forceGoodByColor('blue');
+        document.getElementById('db-force-yellow').onclick = () => forceGoodByColor('yellow');
+        document.getElementById('db-force-green').onclick = () => forceGoodByColor('green');
+        document.getElementById('db-force-purple').onclick = () => forceGoodByColor('purple');
+        document.getElementById('db-force-pink').onclick = () => forceGoodByColor('pink');
+
+        document.getElementById('db-reset-cutin').onclick = () => {
+          shownCutIns.clear();
+          alert('カットイン表示済みフラグをリセットしました');
+        };
+
+        document.getElementById('db-id').textContent = myVoterId;
+
+      } catch (err) {
+        // エラーを画面に表示
+        container.innerHTML = '<div style="padding:32px;background:#fff3f3;border-radius:12px;margin:24px 0;">'
+          + '<h2 style="color:#c62828;margin-bottom:12px;">エラーが発生しました</h2>'
+          + '<p style="color:#555;">' + escapeHtml(err.message) + '</p>'
+          + '<pre style="margin-top:12px;font-size:12px;color:#999;overflow-x:auto;">' + escapeHtml(err.stack || '') + '</pre>'
+          + '</div>';
+        console.error('記事ページエラー:', err);
+      }
+    })();
+  </script>
+
+  <script src="../js/nav.js"></script>
+</body>
+
+</html>
