@@ -268,11 +268,33 @@ a {
   color: #d32f2f;
 }
 
+/* ===== Page Layout (Main + Ad Sidebars) ===== */
+.page-layout {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.ad-sidebar {
+  width: 160px;
+  flex-shrink: 0;
+  padding-top: 32px;
+}
+
+.ad-sidebar-inner {
+  position: sticky;
+  top: 76px;
+}
+
 /* ===== Main Container ===== */
 .main {
   max-width: 1080px;
-  margin: 0 auto;
-  padding: 32px 16px 48px;
+  flex: 1;
+  min-width: 0;
+  padding: 32px 0 48px;
 }
 
 .section-top .top-img {
@@ -1510,6 +1532,14 @@ a {
 
 /* ===== Responsive ===== */
 @media (max-width: 900px) {
+  .ad-sidebar {
+    display: none;
+  }
+
+  .main {
+    padding: 32px 16px 48px;
+  }
+
   .topic-grid {
     grid-template-columns: repeat(2, 1fr);
   }
