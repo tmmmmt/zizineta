@@ -131,6 +131,19 @@
     ];
     var shownCutIns = new Set();
 
+    (function () {
+      var mql = window.matchMedia('(max-width: 600px)');
+      function applyCutInImages(mobile) {
+        COLOR_UNLOCK_THRESHOLDS.forEach(function (t) {
+          t.cutIn = mobile
+            ? t.cutIn.replace('../assets/', '../assets/mobile/')
+            : t.cutIn.replace('../assets/mobile/', '../assets/');
+        });
+      }
+      applyCutInImages(mql.matches);
+      mql.addEventListener('change', function (e) { applyCutInImages(e.matches); });
+    })();
+
     (async function () {
       const container = document.getElementById('article-container');
 
@@ -958,6 +971,12 @@
             <button class="debug-btn" id="db-force-purple" style="color:#ab47bc">Purple</button>
             <button class="debug-btn" id="db-force-pink" style="color:#ec407a">Pink</button>
           </div>
+          <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px;">
+            <span>Cut-in Preview:</span><br>
+            <button class="debug-btn" id="db-cutin-green" style="color:#66bb6a">緑(30)</button>
+            <button class="debug-btn" id="db-cutin-purple" style="color:#ab47bc">紫(70)</button>
+            <button class="debug-btn" id="db-cutin-pink" style="color:#ec407a">桃(120)</button>
+          </div>
           <div style="margin-top:5px;">
             <button class="debug-btn" id="db-reset-cutin" style="width:100%;">Reset Cut-ins</button>
           </div>
@@ -966,7 +985,7 @@
             ID: <span id="db-id" style="font-size:9px;"></span>
           </div>
         `;
-        debugPanel.style.display = 'none';
+        debugPanel.style.display = params.get('debug') === '1' ? 'block' : 'none';
         document.body.appendChild(debugPanel);
 
         // 基本操作
@@ -1046,6 +1065,19 @@
         document.getElementById('db-reset-cutin').onclick = () => {
           shownCutIns.clear();
           alert('カットイン表示済みフラグをリセットしました');
+        };
+
+        document.getElementById('db-cutin-green').onclick = function () {
+          shownCutIns.delete('green');
+          showCutIn(COLOR_UNLOCK_THRESHOLDS[0]);
+        };
+        document.getElementById('db-cutin-purple').onclick = function () {
+          shownCutIns.delete('purple');
+          showCutIn(COLOR_UNLOCK_THRESHOLDS[1]);
+        };
+        document.getElementById('db-cutin-pink').onclick = function () {
+          shownCutIns.delete('pink');
+          showCutIn(COLOR_UNLOCK_THRESHOLDS[2]);
         };
 
         document.getElementById('db-id').textContent = myVoterId;
