@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 - ジジねた</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+
+<body>
+
+  <!-- ===== ログイン画面 ===== -->
+  <div id="login-screen" class="admin-login-screen">
+    <div class="admin-login-box">
+      <div class="admin-login-logo">
+        <img src="/assets/logo.png" alt="ジジねた" style="height:40px;">
+      </div>
+      <h1 class="admin-login-title">管理画面</h1>
+      <form id="login-form" class="admin-login-form">
+        <input type="password" id="login-password" class="admin-login-input" placeholder="パスワードを入力" autocomplete="off">
+        <div id="login-error" class="admin-login-error" style="display:none;">パスワードが正しくありません</div>
+        <button type="submit" class="admin-login-btn">ログイン</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== 管理画面本体 ===== -->
+  <div id="admin-app" style="display:none;">
+
+    <!-- ヘッダー -->
+    <header class="admin-header">
+      <div class="admin-header-left">
+        <img src="/assets/logo.png" alt="ジジねた" style="height:28px;">
+        <span class="admin-header-title">管理画面</span>
+      </div>
+      <div class="admin-header-right">
+        <a href="../index.html" class="admin-back-link">公開サイトへ戻る</a>
+        <button id="logout-btn" class="admin-logout-btn">ログアウト</button>
+      </div>
+    </header>
+
+    <!-- タブナビゲーション -->
+    <nav class="admin-tabs">
+      <button class="admin-tab active" data-tab="dashboard">ダッシュボード</button>
+      <button class="admin-tab" data-tab="articles">記事管理</button>
+      <button class="admin-tab" data-tab="comments">コメント管理</button>
+      <button class="admin-tab" data-tab="stats">統計</button>
+    </nav>
+
+    <!-- ===== ダッシュボード ===== -->
+    <div id="tab-dashboard" class="admin-content admin-tab-content active">
+      <h2 class="admin-section-title">ダッシュボード</h2>
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="admin-stat-number" id="stat-articles">-</div>
+          <div class="admin-stat-label">総記事数</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-number" id="stat-comments">-</div>
+          <div class="admin-stat-label">総コメント数</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-number" id="stat-reactions">-</div>
+          <div class="admin-stat-label">総リアクション数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 記事管理 ===== -->
+    <div id="tab-articles" class="admin-content admin-tab-content">
+      <div class="admin-section-header">
+        <h2 class="admin-section-title">記事管理</h2>
+        <button id="btn-new-article" class="admin-btn admin-btn-primary">新規作成</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>タイトル</th>
+              <th>カテゴリ</th>
+              <th>公開日</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="articles-tbody">
+            <tr><td colspan="4" style="text-align:center;color:#999;">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== コメント管理 ===== -->
+    <div id="tab-comments" class="admin-content admin-tab-content">
+      <div class="admin-section-header">
+        <h2 class="admin-section-title">コメント管理</h2>
+        <select id="comment-filter" class="admin-select">
+          <option value="">すべての記事</option>
+        </select>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>記事</th>
+              <th>コメント</th>
+              <th>色</th>
+              <th>Good/Bad</th>
+              <th>投稿日</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="comments-tbody">
+            <tr><td colspan="6" style="text-align:center;color:#999;">読み込み中...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== 統計 ===== -->
+    <div id="tab-stats" class="admin-content admin-tab-content">
+      <h2 class="admin-section-title">統計</h2>
+      <div class="admin-stats-section">
+        <h3 class="admin-subsection-title">カテゴリ別記事数</h3>
+        <div class="admin-chart-wrap">
+          <canvas id="category-chart"></canvas>
+        </div>
+      </div>
+      <div class="admin-stats-section">
+        <h3 class="admin-subsection-title">記事別リアクション集計</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>記事タイトル</th>
+                <th style="color:#ef5350;">赤</th>
+                <th style="color:#42a5f5;">青</th>
+                <th style="color:#f0a500;">黄</th>
+                <th>合計</th>
+              </tr>
+            </thead>
+            <tbody id="reactions-tbody">
+              <tr><td colspan="5" style="text-align:center;color:#999;">読み込み中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== 記事モーダル ===== -->
+  <div id="article-modal" class="admin-modal-overlay" style="display:none;">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3 id="modal-title">新規記事</h3>
+        <button class="admin-modal-close" id="modal-close">&times;</button>
+      </div>
+      <form id="article-form" class="admin-modal-body">
+        <input type="hidden" id="article-id">
+        <label class="admin-form-label">Slug
+          <input type="text" id="article-slug" class="admin-form-input" required>
+        </label>
+        <label class="admin-form-label">タイトル
+          <input type="text" id="article-title" class="admin-form-input" required>
+        </label>
+        <label class="admin-form-label">要約
+          <textarea id="article-summary" class="admin-form-textarea" rows="2"></textarea>
+        </label>
+        <label class="admin-form-label">本文
+          <textarea id="article-content" class="admin-form-textarea" rows="8"></textarea>
+        </label>
+        <label class="admin-form-label">カテゴリ
+          <select id="article-category" class="admin-form-input">
+            <option value="ai">AI</option>
+            <option value="tech">テクノロジー</option>
+            <option value="game">ゲーム</option>
+            <option value="entame">エンタメ</option>
+            <option value="internet">ネット話題</option>
+            <option value="society">社会</option>
+          </select>
+        </label>
+        <label class="admin-form-label">公開日
+          <input type="datetime-local" id="article-published" class="admin-form-input">
+        </label>
+        <div class="admin-modal-footer">
+          <button type="button" class="admin-btn" id="modal-cancel">キャンセル</button>
+          <button type="submit" class="admin-btn admin-btn-primary" id="modal-save">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="../js/data.js"></script>
+  <script src="../js/supabase-config.js"></script>
+  <script>
+    // ============================================
+    // 認証
+    // ============================================
+    var ADMIN_PASSWORD = 'admin_zz';
+
+    function isLoggedIn() {
+      return sessionStorage.getItem('admin_logged_in') === 'true';
+    }
+
+    function showApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-app').style.display = 'block';
+      loadDashboard();
+    }
+
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var pw = document.getElementById('login-password').value;
+      if (pw === ADMIN_PASSWORD) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        document.getElementById('login-error').style.display = 'none';
+        showApp();
+      } else {
+        document.getElementById('login-error').style.display = 'block';
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      sessionStorage.removeItem('admin_logged_in');
+      location.reload();
+    });
+
+    if (isLoggedIn()) {
+      showApp();
+    }
+
+    // ============================================
+    // タブ切り替え
+    // ============================================
+    var tabs = document.querySelectorAll('.admin-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+        document.querySelectorAll('.admin-tab-content').forEach(function(c) { c.classList.remove('active'); });
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+
+        if (tab.dataset.tab === 'dashboard') loadDashboard();
+        if (tab.dataset.tab === 'articles') loadArticles();
+        if (tab.dataset.tab === 'comments') loadComments();
+        if (tab.dataset.tab === 'stats') loadStats();
+      });
+    });
+
+    // ============================================
+    // ユーティリティ
+    // ============================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function categoryLabel(cat) {
+      var c = CATEGORY_MAP[cat];
+      return c ? c.label : cat || '-';
+    }
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return '-';
+      var d = new Date(dateStr);
+      return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0');
+    }
+
+    // ============================================
+    // ダッシュボード
+    // ============================================
+    var dashboardLoaded = false;
+    async function loadDashboard() {
+      if (dashboardLoaded) return;
+      if (!supabaseClient) return;
+
+      var [articlesRes, commentsRes, reactionsRes] = await Promise.all([
+        supabaseClient.from('articles').select('id', { count: 'exact', head: true }),
+        supabaseClient.from('article_comments').select('id', { count: 'exact', head: true }),
+        supabaseClient.from('reaction_stats').select('red, blue, yellow')
+      ]);
+
+      document.getElementById('stat-articles').textContent = articlesRes.count || 0;
+      document.getElementById('stat-comments').textContent = commentsRes.count || 0;
+
+      var totalReactions = 0;
+      if (reactionsRes.data) {
+        reactionsRes.data.forEach(function(r) {
+          totalReactions += Number(r.red || 0) + Number(r.blue || 0) + Number(r.yellow || 0);
+        });
+      }
+      document.getElementById('stat-reactions').textContent = totalReactions;
+      dashboardLoaded = true;
+    }
+
+    // ============================================
+    // 記事管理
+    // ============================================
+    var allArticles = [];
+
+    async function loadArticles() {
+      if (!supabaseClient) return;
+      var { data, error } = await supabaseClient
+        .from('articles')
+        .select('*')
+        .order('published_at', { ascending: false });
+
+      if (error) { console.error(error); return; }
+      allArticles = data || [];
+      renderArticles();
+    }
+
+    function renderArticles() {
+      var tbody = document.getElementById('articles-tbody');
+      if (allArticles.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">記事がありません</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allArticles.map(function(a) {
+        return '<tr>'
+          + '<td>' + escapeHtml(a.title) + '</td>'
+          + '<td>' + escapeHtml(categoryLabel(a.category)) + '</td>'
+          + '<td>' + fmtDate(a.published_at) + '</td>'
+          + '<td class="admin-actions">'
+          + '<button class="admin-btn-sm admin-btn-edit" onclick="editArticle(\'' + a.id + '\')">編集</button>'
+          + '<button class="admin-btn-sm admin-btn-delete" onclick="deleteArticle(\'' + a.id + '\', this)">削除</button>'
+          + '</td></tr>';
+      }).join('');
+    }
+
+    // 新規作成ボタン
+    document.getElementById('btn-new-article').addEventListener('click', function() {
+      document.getElementById('modal-title').textContent = '新規記事';
+      document.getElementById('article-form').reset();
+      document.getElementById('article-id').value = '';
+      document.getElementById('article-modal').style.display = 'flex';
+    });
+
+    // 編集
+    function editArticle(id) {
+      var a = allArticles.find(function(x) { return x.id === id; });
+      if (!a) return;
+      document.getElementById('modal-title').textContent = '記事を編集';
+      document.getElementById('article-id').value = a.id;
+      document.getElementById('article-slug').value = a.slug || '';
+      document.getElementById('article-title').value = a.title || '';
+      document.getElementById('article-summary').value = a.summary || '';
+      document.getElementById('article-content').value = a.content || '';
+      document.getElementById('article-category').value = a.category || 'ai';
+      if (a.published_at) {
+        var d = new Date(a.published_at);
+        var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('article-published').value = local;
+      }
+      document.getElementById('article-modal').style.display = 'flex';
+    }
+
+    // 削除
+    async function deleteArticle(id, btn) {
+      if (!confirm('この記事を削除しますか？')) return;
+      btn.disabled = true;
+      var { error } = await supabaseClient.from('articles').delete().eq('id', id);
+      if (error) { alert('削除エラー: ' + error.message); btn.disabled = false; return; }
+      loadArticles();
+    }
+
+    // 保存（新規 / 更新）
+    document.getElementById('article-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var id = document.getElementById('article-id').value;
+      var payload = {
+        slug: document.getElementById('article-slug').value.trim(),
+        title: document.getElementById('article-title').value.trim(),
+        summary: document.getElementById('article-summary').value.trim(),
+        content: document.getElementById('article-content').value.trim(),
+        category: document.getElementById('article-category').value,
+        published_at: document.getElementById('article-published').value ? new Date(document.getElementById('article-published').value).toISOString() : null
+      };
+
+      document.getElementById('modal-save').disabled = true;
+      var result;
+      if (id) {
+        result = await supabaseClient.from('articles').update(payload).eq('id', id);
+      } else {
+        result = await supabaseClient.from('articles').insert([payload]);
+      }
+
+      if (result.error) {
+        alert('保存エラー: ' + result.error.message);
+        document.getElementById('modal-save').disabled = false;
+        return;
+      }
+
+      document.getElementById('article-modal').style.display = 'none';
+      document.getElementById('modal-save').disabled = false;
+      dashboardLoaded = false;
+      loadArticles();
+    });
+
+    // モーダルを閉じる
+    document.getElementById('modal-close').addEventListener('click', function() {
+      document.getElementById('article-modal').style.display = 'none';
+    });
+    document.getElementById('modal-cancel').addEventListener('click', function() {
+      document.getElementById('article-modal').style.display = 'none';
+    });
+    document.getElementById('article-modal').addEventListener('click', function(e) {
+      if (e.target === this) this.style.display = 'none';
+    });
+
+    // ============================================
+    // コメント管理
+    // ============================================
+    var allComments = [];
+    var commentArticleMap = {};
+
+    async function loadComments() {
+      if (!supabaseClient) return;
+
+      // 記事一覧をフィルター用に取得
+      if (allArticles.length === 0) {
+        var { data: arts } = await supabaseClient.from('articles').select('id, title').order('published_at', { ascending: false });
+        allArticles = arts || [];
+      }
+
+      // フィルターセレクト更新
+      var filterEl = document.getElementById('comment-filter');
+      var currentVal = filterEl.value;
+      filterEl.innerHTML = '<option value="">すべての記事</option>';
+      allArticles.forEach(function(a) {
+        commentArticleMap[a.id] = a.title;
+        var opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.title;
+        filterEl.appendChild(opt);
+      });
+      filterEl.value = currentVal;
+
+      // コメント取得
+      var query = supabaseClient.from('article_comments').select('*').order('created_at', { ascending: false }).limit(500);
+      if (currentVal) {
+        query = query.eq('article_id', currentVal);
+      }
+      var { data, error } = await query;
+      if (error) { console.error(error); return; }
+      allComments = data || [];
+      renderComments();
+    }
+
+    function renderComments() {
+      var tbody = document.getElementById('comments-tbody');
+      if (allComments.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">コメントがありません</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allComments.map(function(c) {
+        var articleTitle = commentArticleMap[c.article_id] || c.article_id;
+        return '<tr>'
+          + '<td>' + escapeHtml(articleTitle) + '</td>'
+          + '<td>' + escapeHtml(c.comment) + '</td>'
+          + '<td><span class="admin-color-dot" style="background:' + colorToHex(c.color) + ';"></span></td>'
+          + '<td>' + (c.good || 0) + ' / ' + (c.bad || 0) + '</td>'
+          + '<td>' + fmtDate(c.created_at) + '</td>'
+          + '<td><button class="admin-btn-sm admin-btn-delete" onclick="deleteComment(\'' + c.id + '\', this)">削除</button></td>'
+          + '</tr>';
+      }).join('');
+    }
+
+    function colorToHex(color) {
+      var map = { red: '#ef5350', blue: '#42a5f5', yellow: '#ffca28', green: '#66bb6a', purple: '#ab47bc', pink: '#ec407a' };
+      return map[color] || '#ccc';
+    }
+
+    async function deleteComment(id, btn) {
+      if (!confirm('このコメントを削除しますか？')) return;
+      btn.disabled = true;
+      var { error } = await supabaseClient.from('comments').delete().eq('id', id);
+      if (error) { alert('削除エラー: ' + error.message); btn.disabled = false; return; }
+      dashboardLoaded = false;
+      loadComments();
+    }
+
+    document.getElementById('comment-filter').addEventListener('change', function() {
+      loadComments();
+    });
+
+    // ============================================
+    // 統計
+    // ============================================
+    var categoryChart = null;
+
+    async function loadStats() {
+      if (!supabaseClient) return;
+
+      // 記事一覧
+      if (allArticles.length === 0) {
+        var { data: arts } = await supabaseClient.from('articles').select('*').order('published_at', { ascending: false });
+        allArticles = arts || [];
+      }
+
+      // カテゴリ別集計
+      var catCount = {};
+      Object.keys(CATEGORY_MAP).forEach(function(k) { catCount[k] = 0; });
+      allArticles.forEach(function(a) {
+        if (a.category) catCount[a.category] = (catCount[a.category] || 0) + 1;
+      });
+
+      var labels = Object.keys(catCount).map(function(k) { return categoryLabel(k); });
+      var values = Object.keys(catCount).map(function(k) { return catCount[k]; });
+
+      if (categoryChart) categoryChart.destroy();
+      categoryChart = new Chart(document.getElementById('category-chart'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '記事数',
+            data: values,
+            backgroundColor: 'rgba(124, 92, 191, 0.6)',
+            borderColor: '#7c5cbf',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      // リアクション集計
+      var { data: reactionData } = await supabaseClient.from('reaction_stats').select('*');
+      var reactionMap = {};
+      if (reactionData) {
+        reactionData.forEach(function(r) { reactionMap[r.article_id] = r; });
+      }
+
+      var tbody = document.getElementById('reactions-tbody');
+      if (allArticles.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">データなし</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allArticles.map(function(a) {
+        var r = reactionMap[a.id] || { red: 0, blue: 0, yellow: 0 };
+        var red = Number(r.red || 0), blue = Number(r.blue || 0), yellow = Number(r.yellow || 0);
+        return '<tr>'
+          + '<td>' + escapeHtml(a.title) + '</td>'
+          + '<td>' + red + '</td>'
+          + '<td>' + blue + '</td>'
+          + '<td>' + yellow + '</td>'
+          + '<td><strong>' + (red + blue + yellow) + '</strong></td>'
+          + '</tr>';
+      }).join('');
+    }
+  </script>
+
+</body>
+
+</html>
